@@ -4,7 +4,7 @@ import PackageDescription
 let package = Package(
     name: "RSLoadingView",
     platforms: [
-        .iOS(.v9)
+        .iOS(.v16)
     ],
     products: [
         .library(name: "RSLoadingView", targets: ["RSLoadingView"])
