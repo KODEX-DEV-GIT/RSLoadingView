@@ -133,18 +133,18 @@ public class RSLoadingView: UIView, SCNSceneRendererDelegate {
   }
   
   func loadParticleSystem(name: String) -> SCNParticleSystem? {
-    let bundle: Bundle = {
-#if SWIFT_PACKAGE
+        let bundle: Bundle = {
+    #if SWIFT_PACKAGE && compiler(>=5.3)
       return Bundle.module
-#else
+    #else
       let frameworkBundle = Bundle(for: RSLoadingView.self)
       if let bundleURL = frameworkBundle.url(forResource: "RSLoadingView", withExtension: "bundle"),
          let resourceBundle = Bundle(url: bundleURL) {
         return resourceBundle
       }
       return frameworkBundle
-#endif
-    }()
+    #endif
+        }()
 
     // Try to load .scnp particle file from the resource bundle
     if let url = bundle.url(forResource: name, withExtension: "scnp") {
@@ -168,18 +168,18 @@ public class RSLoadingView: UIView, SCNSceneRendererDelegate {
   }
   
   func loadParticleImage(name: String) -> UIImage? {
-    let bundle: Bundle = {
-#if SWIFT_PACKAGE
+        let bundle: Bundle = {
+    #if SWIFT_PACKAGE && compiler(>=5.3)
       return Bundle.module
-#else
+    #else
       let frameworkBundle = Bundle(for: RSLoadingView.self)
       if let bundleURL = frameworkBundle.url(forResource: "RSLoadingView", withExtension: "bundle"),
          let resourceBundle = Bundle(url: bundleURL) {
         return resourceBundle
       }
       return frameworkBundle
-#endif
-    }()
+    #endif
+        }()
 
     if let image = UIImage(named: name, in: bundle, compatibleWith: nil) {
       return image
