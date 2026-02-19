@@ -133,17 +133,13 @@ public class RSLoadingView: UIView, SCNSceneRendererDelegate {
   }
   
   func loadParticleSystem(name: String) -> SCNParticleSystem? {
+        // Find a bundle that contains the resource (works for SPM module bundles and framework bundles)
         let bundle: Bundle = {
-    #if SWIFT_PACKAGE && compiler(>=5.3)
-      return Bundle.module
-    #else
-      let frameworkBundle = Bundle(for: RSLoadingView.self)
-      if let bundleURL = frameworkBundle.url(forResource: "RSLoadingView", withExtension: "bundle"),
-         let resourceBundle = Bundle(url: bundleURL) {
-        return resourceBundle
-      }
-      return frameworkBundle
-    #endif
+          let candidates = Bundle.allBundles + Bundle.allFrameworks + [Bundle.main]
+          if let b = candidates.first(where: { $0.path(forResource: name, ofType: "scnp") != nil || $0.path(forResource: name, ofType: "png") != nil }) {
+            return b
+          }
+          return Bundle(for: RSLoadingView.self)
         }()
 
     // Try to load .scnp particle file from the resource bundle
@@ -168,20 +164,16 @@ public class RSLoadingView: UIView, SCNSceneRendererDelegate {
   }
   
   func loadParticleImage(name: String) -> UIImage? {
+        // Find a bundle that contains the image resource
         let bundle: Bundle = {
-    #if SWIFT_PACKAGE && compiler(>=5.3)
-      return Bundle.module
-    #else
-      let frameworkBundle = Bundle(for: RSLoadingView.self)
-      if let bundleURL = frameworkBundle.url(forResource: "RSLoadingView", withExtension: "bundle"),
-         let resourceBundle = Bundle(url: bundleURL) {
-        return resourceBundle
-      }
-      return frameworkBundle
-    #endif
+          let candidates = Bundle.allBundles + Bundle.allFrameworks + [Bundle.main]
+          if let b = candidates.first(where: { $0.path(forResource: name, ofType: "png") != nil || $0.path(forResource: name, ofType: "jpg") != nil }) {
+            return b
+          }
+          return Bundle(for: RSLoadingView.self)
         }()
 
-    if let image = UIImage(named: name, in: bundle, compatibleWith: nil) {
+        if let image = UIImage(named: name, in: bundle, compatibleWith: nil) {
       return image
     } else {
       logger.logDebug("Can't load particleImage \(name) at \(bundle.bundlePath)")
