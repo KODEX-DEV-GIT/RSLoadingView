@@ -88,7 +88,7 @@ public class RSLoadingView: UIView, SCNSceneRendererDelegate {
     cameraNode.camera = SCNCamera()
     scene.rootNode.addChildNode(cameraNode)
     cameraNode.position = SCNVector3(x: 0, y: 0, z: 15)
-    bundleResourcePath = "/Frameworks/RSLoadingView.framework/RSLoadingView.bundle/"
+    // resource bundle path is resolved dynamically via `resourceBundle` below
     effect.setup(main: self)
   }
   
@@ -133,22 +133,58 @@ public class RSLoadingView: UIView, SCNSceneRendererDelegate {
   }
   
   func loadParticleSystem(name: String) -> SCNParticleSystem? {
-    if let particleSystem = SCNParticleSystem(named: name, inDirectory: bundleResourcePath) {
-      return particleSystem
-    } else {
-      logger.logDebug("Can't load particleSystem \(name) at \(bundleResourcePath)")
-      return nil
+    let bundle: Bundle = {
+#if SWIFT_PACKAGE
+      return Bundle.module
+#else
+      let frameworkBundle = Bundle(for: RSLoadingView.self)
+      if let bundleURL = frameworkBundle.url(forResource: "RSLoadingView", withExtension: "bundle"),
+         let resourceBundle = Bundle(url: bundleURL) {
+        return resourceBundle
+      }
+      return frameworkBundle
+#endif
+    }()
+
+    // Try to load .scnp particle file from the resource bundle
+    if let url = bundle.url(forResource: name, withExtension: "scnp") {
+      do {
+        let data = try Data(contentsOf: url)
+        if let ps = try NSKeyedUnarchiver.unarchiveTopLevelObjectWithData(data) as? SCNParticleSystem {
+          return ps
+        }
+      } catch {
+        logger.logDebug("Can't unarchive particleSystem \(name): \(error)")
+      }
     }
+
+    // Fallback to default lookup
+    if let particleSystem = SCNParticleSystem(named: name, inDirectory: nil) {
+      return particleSystem
+    }
+
+    logger.logDebug("Can't load particleSystem \(name) in bundle \(bundle.bundlePath)")
+    return nil
   }
   
   func loadParticleImage(name: String) -> UIImage? {
-    let frameworkBundle = Bundle(for: RSLoadingView.self)
-    let bundleURL = frameworkBundle.url(forResource: "RSLoadingView", withExtension: "bundle")!
-    let resourceBundle = Bundle(url: bundleURL)!
-    if let image = UIImage(named: name, in: resourceBundle, compatibleWith: nil) {
+    let bundle: Bundle = {
+#if SWIFT_PACKAGE
+      return Bundle.module
+#else
+      let frameworkBundle = Bundle(for: RSLoadingView.self)
+      if let bundleURL = frameworkBundle.url(forResource: "RSLoadingView", withExtension: "bundle"),
+         let resourceBundle = Bundle(url: bundleURL) {
+        return resourceBundle
+      }
+      return frameworkBundle
+#endif
+    }()
+
+    if let image = UIImage(named: name, in: bundle, compatibleWith: nil) {
       return image
     } else {
-      logger.logDebug("Can't load particleImage \(name) at \(resourceBundle.bundlePath)")
+      logger.logDebug("Can't load particleImage \(name) at \(bundle.bundlePath)")
       return nil
     }
   }
