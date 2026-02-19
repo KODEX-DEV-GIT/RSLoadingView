@@ -1,5 +1,5 @@
 import Foundation
-
+import UIKit
 internal class RSLoadingContainerView: UIView {
   let logger = RSLogger(tag: "RSLoadingContainerView")
   internal var loadingView: RSLoadingView!
